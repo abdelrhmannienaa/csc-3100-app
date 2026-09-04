@@ -24,6 +24,6 @@ function MyApp() {
       <Form handleSubmit={updateList} />
     </div>
   );
-}
+} 
 
 export default MyApp;
