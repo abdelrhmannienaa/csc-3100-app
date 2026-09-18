@@ -3,7 +3,7 @@ import cors from "cors";
 
 const app = express();
 const port = 8000;
-
+app.use(cors());
 app.use(express.json());
 
 
@@ -57,19 +57,26 @@ app.get("/users/:id", (req, res) => {
   res.send(user);
 });
 
+const generateId = () => {
+  return Math.random().toString(36).slice(2, 8);
+};
+
 // POST a new user
 app.post("/users", (req, res) => {
-  const { id, name, job } = req.body;
+  const { name, job } = req.body;
 
-  if (!id || !name || !job) {
-    return res.status(400).send("id, name, and job are required.");
+  if (!name || !job) {
+    return res.status(400).send("name and job are required.");
   }
 
-  if (findUserById(id)) {
-    return res.status(409).send("A user with that id already exists.");
+  let id = generateId();
+
+  while (findUserById(id)) {
+    id = generateId();
   }
 
   const addedUser = addUser({ id, name, job });
+
   res.status(201).send(addedUser);
 });
 
