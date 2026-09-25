@@ -1,5 +1,5 @@
-// src/Table.jsx
 import React from "react";
+
 function TableHeader() {
   return (
     <thead>
@@ -7,35 +7,28 @@ function TableHeader() {
         <th>Name</th>
         <th>Job</th>
         <th>ID</th>
-
       </tr>
     </thead>
   );
 }
+
 function TableBody(props) {
-  const rows = props.characterData.map((row, index) => {
+  const rows = props.characterData.map((row) => {
     return (
-      <tr key={index}>
+      <tr key={row._id}>
         <td>{row.name}</td>
         <td>{row.job}</td>
-        <td>{row.id}</td>
-  
-      <td>
-        <button onClick={() => props.removeCharacter(index)}>Delete</button>
-      </td>
+        <td>{row._id}</td>
+        <td>
+          <button onClick={() => props.removeCharacter(row._id)}>Delete</button>
+        </td>
       </tr>
     );
+  });
 
-   }
-  );
-  return (
-      <tbody>
-        {rows}
-       </tbody>
-
-   );
-   
+  return <tbody>{rows}</tbody>;
 }
+
 function Table(props) {
   return (
     <table>

@@ -1,65 +1,40 @@
 import express from "express";
 import cors from "cors";
+import userService from "./services/user-service.js";
 
 const app = express();
 const port = 8000;
+
 app.use(cors());
 app.use(express.json());
-
-
-const users = {
-  users_list: [
-    { id: "xyz789", name: "Charlie", job: "Janitor" },
-    { id: "abc123", name: "Mac", job: "Bouncer" },
-    { id: "ppp222", name: "Mac", job: "Professor" },
-    { id: "yat999", name: "Dee", job: "Aspiring actress" },
-    { id: "zap555", name: "Dennis", job: "Bartender" },
-  ],
-};
-
-const findUserById = (id) =>
-  users.users_list.find((user) => user.id === id);
-
-const addUser = (user) => {
-  users.users_list.push(user);
-  return user;
-};
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// GET all users, by name, or by name + job
+// GET all users, optionally filtered by name and/or job
 app.get("/users", (req, res) => {
   const { name, job } = req.query;
 
-  let result = users.users_list;
-
-  if (name !== undefined) {
-    result = result.filter((user) => user.name === name);
-  }
-
-  if (job !== undefined) {
-    result = result.filter((user) => user.job === job);
-  }
-
-  res.send({ users_list: result });
+  userService
+    .getUsers(name, job)
+    .then((users) => res.send({ users_list: users }))
+    .catch((error) => res.status(500).send(error.message));
 });
 
-// GET one user by ID
+// GET one user by MongoDB _id
 app.get("/users/:id", (req, res) => {
-  const user = findUserById(req.params.id);
+  userService
+    .findUserById(req.params.id)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send("Resource not found.");
+      }
 
-  if (!user) {
-    return res.status(404).send("Resource not found.");
-  }
-
-  res.send(user);
+      res.send(user);
+    })
+    .catch((error) => res.status(500).send(error.message));
 });
-
-const generateId = () => {
-  return Math.random().toString(36).slice(2, 8);
-};
 
 // POST a new user
 app.post("/users", (req, res) => {
@@ -69,29 +44,24 @@ app.post("/users", (req, res) => {
     return res.status(400).send("name and job are required.");
   }
 
-  let id = generateId();
-
-  while (findUserById(id)) {
-    id = generateId();
-  }
-
-  const addedUser = addUser({ id, name, job });
-
-  res.status(201).send(addedUser);
+  userService
+    .addUser({ name, job })
+    .then((addedUser) => res.status(201).send(addedUser))
+    .catch((error) => res.status(400).send(error.message));
 });
 
-// DELETE a user by ID
+// DELETE a user by MongoDB _id
 app.delete("/users/:id", (req, res) => {
-  const index = users.users_list.findIndex(
-    (user) => user.id === req.params.id
-  );
+  userService
+    .removeUser(req.params.id)
+    .then((deletedUser) => {
+      if (!deletedUser) {
+        return res.status(404).send("Resource not found.");
+      }
 
-  if (index === -1) {
-    return res.status(404).send("Resource not found.");
-  }
-
-  users.users_list.splice(index, 1);
-  res.status(204).send();
+      res.status(204).send();
+    })
+    .catch((error) => res.status(500).send(error.message));
 });
 
 app.listen(port, () => {

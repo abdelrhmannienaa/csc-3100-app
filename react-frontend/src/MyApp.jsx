@@ -32,6 +32,7 @@ function MyApp() {
         if (res.status !== 201) {
           throw new Error("User was not created.");
         }
+
         return res.json();
       })
       .then((newUser) => {
@@ -46,26 +47,21 @@ function MyApp() {
     });
   }
 
-  function removeOneCharacter(index) {
-    const userToDelete = characters[index];
-
-    deleteUser(userToDelete.id)
+  function removeOneCharacter(id) {
+    deleteUser(id)
       .then((res) => {
         if (res.status !== 204) {
           throw new Error("User was not deleted.");
         }
 
-        setCharacters(characters.filter((character, i) => i !== index));
+        setCharacters(characters.filter((character) => character._id !== id));
       })
       .catch((error) => console.log(error));
   }
 
   return (
     <div className="container">
-      <Table
-        characterData={characters}
-        removeCharacter={removeOneCharacter}
-      />
+      <Table characterData={characters} removeCharacter={removeOneCharacter} />
       <Form handleSubmit={updateList} />
     </div>
   );
